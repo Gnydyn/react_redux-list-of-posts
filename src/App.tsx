@@ -9,16 +9,15 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
-import { User } from './types/User';
 import { Post } from './types/Post';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import * as postsActions from './features/posts';
+import * as authorActions from './features/author';
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch();
   const { posts, loading, error } = useAppSelector(state => state.posts);
-
-  const [author, setAuthor] = useState<User | null>(null);
+  const { author } = useAppSelector(state => state.author);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
@@ -44,7 +43,10 @@ export const App: React.FC = () => {
           <div className="tile is-parent">
             <div className="tile is-child box is-success">
               <div className="block">
-                <UserSelector value={author} onChange={setAuthor} />
+                <UserSelector
+                  value={author}
+                  onChange={user => dispatch(authorActions.init(user.id))}
+                />
               </div>
 
               <div className="block" data-cy="MainContent">
