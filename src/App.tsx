@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import classNames from 'classnames';
 
 import 'bulma/css/bulma.css';
@@ -9,21 +9,21 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
-import { Post } from './types/Post';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import * as postsActions from './features/posts';
 import * as authorActions from './features/author';
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { items, loaded, hasError } = useAppSelector(state => state.posts);
+  const { items, selectedPost, loaded, hasError } = useAppSelector(
+    state => state.posts,
+  );
   const { author } = useAppSelector(state => state.author);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
     // we clear the post when an author is changed
     // not to confuse the user
-    setSelectedPost(null);
+    dispatch(postsActions.setSelectedPost(null));
 
     if (author) {
       dispatch(postsActions.init(author.id));
@@ -31,10 +31,6 @@ export const App: React.FC = () => {
       dispatch(postsActions.clearPosts());
     }
   }, [author, dispatch]);
-
-  if (loaded) {
-    return <Loader />;
-  }
 
   return (
     <main className="section">
@@ -45,7 +41,7 @@ export const App: React.FC = () => {
               <div className="block">
                 <UserSelector
                   value={author}
-                  onChange={user => dispatch(authorActions.init(user.id))}
+                  onChange={user => dispatch(authorActions.setAuthor(user))}
                 />
               </div>
 
@@ -73,7 +69,9 @@ export const App: React.FC = () => {
                   <PostsList
                     posts={items}
                     selectedPostId={selectedPost?.id}
-                    onPostSelected={setSelectedPost}
+                    onPostSelected={post =>
+                      dispatch(postsActions.setSelectedPost(post))
+                    }
                   />
                 )}
               </div>

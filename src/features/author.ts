@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { User } from '../types/User';
 import { getUser } from '../api/users';
 
@@ -17,7 +17,11 @@ export const init = createAsyncThunk('author/init', (userId: number) => {
 const authorSlice = createSlice({
   name: 'author',
   initialState,
-  reducers: {},
+  reducers: {
+    setAuthor(state, action: PayloadAction<User | null>) {
+      state.author = action.payload;
+    },
+  },
   extraReducers: builder => {
     builder.addCase(init.fulfilled, (state, action) => {
       state.author = action.payload;
@@ -26,3 +30,4 @@ const authorSlice = createSlice({
 });
 
 export default authorSlice.reducer;
+export const { setAuthor } = authorSlice.actions;
