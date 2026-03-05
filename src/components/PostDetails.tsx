@@ -17,7 +17,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
   const [visible, setVisible] = useState(false);
   const dispatch = useAppDispatch();
 
-  const { comments, loading, error } = useAppSelector(state => state.comments);
+  const { items, loaded, hasError } = useAppSelector(state => state.comments);
 
   useEffect(() => {
     setVisible(false);
@@ -41,11 +41,15 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
   };
 
   const deleteComment = async (commentId: number) => {
-    dispatch(commentsActions.takeComment(commentId));
-    await commentsApi.deleteComment(commentId);
+    try {
+      dispatch(commentsActions.deleteComment(commentId));
+      await commentsApi.deleteComment(commentId);
+    } catch (error) {
+      // we can show some error message here and keep the comment in the list
+    }
   };
 
-  if (loading) {
+  if (loaded) {
     return <Loader />;
   }
 
@@ -58,33 +62,33 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
       </div>
 
       <div className="block">
-        {loading && <Loader />}
+        {loaded && <Loader />}
 
-        {!loading && !!error && (
+        {!loaded && !!hasError && (
           <div className="notification is-danger" data-cy="CommentsError">
             Something went wrong
           </div>
         )}
 
-        {!loading && !error && comments.length === 0 && (
+        {!loaded && !hasError && items.length === 0 && (
           <p className="title is-4" data-cy="NoCommentsMessage">
             No comments yet
           </p>
         )}
 
-        {!loading && !error && comments.length > 0 && (
+        {!loaded && !hasError && items.length > 0 && (
           <>
             <p className="title is-4">Comments:</p>
 
-            {comments.map(comment => (
+            {items.map(item => (
               <article
                 className="message is-small"
-                key={comment.id}
+                key={item.id}
                 data-cy="Comment"
               >
                 <div className="message-header">
-                  <a href={`mailto:${comment.email}`} data-cy="CommentAuthor">
-                    {comment.name}
+                  <a href={`mailto:${item.email}`} data-cy="CommentAuthor">
+                    {item.name}
                   </a>
 
                   <button
@@ -92,21 +96,21 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
                     type="button"
                     className="delete is-small"
                     aria-label="delete"
-                    onClick={() => deleteComment(comment.id)}
+                    onClick={() => deleteComment(item.id)}
                   >
                     delete button
                   </button>
                 </div>
 
                 <div className="message-body" data-cy="CommentBody">
-                  {comment.body}
+                  {item.body}
                 </div>
               </article>
             ))}
           </>
         )}
 
-        {!loading && !error && !visible && (
+        {!loaded && !hasError && !visible && (
           <button
             data-cy="WriteCommentButton"
             type="button"
@@ -117,7 +121,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
           </button>
         )}
 
-        {!loading && !error && visible && (
+        {!loaded && !hasError && visible && (
           <NewCommentForm onSubmit={addComment} />
         )}
       </div>

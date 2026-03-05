@@ -3,15 +3,15 @@ import { Post } from '../types/Post';
 import { getUserPosts } from '../api/posts';
 
 type PostsState = {
-  posts: Post[];
-  loading: boolean;
-  error: string;
+  items: Post[];
+  loaded: boolean;
+  hasError: string;
 };
 
 const initialState: PostsState = {
-  posts: [],
-  loading: false,
-  error: '',
+  items: [],
+  loaded: false,
+  hasError: '',
 };
 
 export const init = createAsyncThunk('posts/init', (userId: number) => {
@@ -23,23 +23,23 @@ const postsSlice = createSlice({
   initialState,
   reducers: {
     clearPosts(state) {
-      state.posts = [];
-      state.loading = false;
-      state.error = '';
+      state.items = [];
+      state.loaded = false;
+      state.hasError = '';
     },
   },
   extraReducers: builder => {
     builder.addCase(init.pending, state => {
-      state.loading = true;
-      state.error = '';
+      state.loaded = true;
+      state.hasError = '';
     });
     builder.addCase(init.fulfilled, (state, action: PayloadAction<Post[]>) => {
-      state.posts = action.payload;
-      state.loading = false;
+      state.items = action.payload;
+      state.loaded = false;
     });
     builder.addCase(init.rejected, state => {
-      state.error = 'Failed to load posts';
-      state.loading = false;
+      state.hasError = 'Failed to load posts';
+      state.loaded = false;
     });
   },
 });

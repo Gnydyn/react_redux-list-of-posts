@@ -3,15 +3,15 @@ import { Comment } from '../types/Comment';
 import { getPostComments } from '../api/comments';
 
 type CommentsState = {
-  comments: Comment[];
-  loading: boolean;
-  error: string;
+  items: Comment[];
+  loaded: boolean;
+  hasError: string;
 };
 
 const initialState: CommentsState = {
-  comments: [],
-  loading: false,
-  error: '',
+  items: [],
+  loaded: false,
+  hasError: '',
 };
 
 export const init = createAsyncThunk('comments/init', (userId: number) => {
@@ -23,34 +23,33 @@ const commentsSlice = createSlice({
   initialState,
   reducers: {
     addComment(state, action: PayloadAction<Comment>) {
-      state.comments.push(action.payload);
+      state.items.push(action.payload);
     },
-    takeComment(state, action: PayloadAction<number>) {
-      state.comments = state.comments.filter(
-        comment => comment.id !== action.payload,
-      );
+    deleteComment(state, action: PayloadAction<number>) {
+      state.items = state.items.filter(item => item.id !== action.payload);
     },
     clearComments(state) {
-      state.comments = [];
-      state.loading = false;
-      state.error = '';
+      state.items = [];
+      state.loaded = false;
+      state.hasError = '';
     },
   },
   extraReducers: builder => {
     builder.addCase(init.pending, state => {
-      state.loading = true;
-      state.error = '';
+      state.loaded = true;
+      state.hasError = '';
     });
     builder.addCase(init.fulfilled, (state, action) => {
-      state.comments = action.payload;
-      state.loading = false;
+      state.items = action.payload;
+      state.loaded = false;
     });
     builder.addCase(init.rejected, state => {
-      state.error = 'Failed to load comments';
-      state.loading = false;
+      state.hasError = 'Failed to load comments';
+      state.loaded = false;
     });
   },
 });
 
 export default commentsSlice.reducer;
-export const { addComment, takeComment, clearComments } = commentsSlice.actions;
+export const { addComment, deleteComment, clearComments } =
+  commentsSlice.actions;

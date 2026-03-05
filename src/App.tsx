@@ -16,7 +16,7 @@ import * as authorActions from './features/author';
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { posts, loading, error } = useAppSelector(state => state.posts);
+  const { items, loaded, hasError } = useAppSelector(state => state.posts);
   const { author } = useAppSelector(state => state.author);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
@@ -32,7 +32,7 @@ export const App: React.FC = () => {
     }
   }, [author, dispatch]);
 
-  if (loading) {
+  if (loaded) {
     return <Loader />;
   }
 
@@ -52,9 +52,9 @@ export const App: React.FC = () => {
               <div className="block" data-cy="MainContent">
                 {!author && <p data-cy="NoSelectedUser">No user selected</p>}
 
-                {author && loading && <Loader />}
+                {author && loaded && <Loader />}
 
-                {author && !loading && !!error && (
+                {author && !loaded && !!hasError && (
                   <div
                     className="notification is-danger"
                     data-cy="PostsLoadingError"
@@ -63,15 +63,15 @@ export const App: React.FC = () => {
                   </div>
                 )}
 
-                {author && !loading && !error && posts.length === 0 && (
+                {author && !loaded && !hasError && items.length === 0 && (
                   <div className="notification is-warning" data-cy="NoPostsYet">
                     No posts yet
                   </div>
                 )}
 
-                {author && !loading && !error && posts.length > 0 && (
+                {author && !loaded && !hasError && items.length > 0 && (
                   <PostsList
-                    posts={posts}
+                    posts={items}
                     selectedPostId={selectedPost?.id}
                     onPostSelected={setSelectedPost}
                   />
