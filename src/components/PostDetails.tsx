@@ -3,7 +3,6 @@ import { Loader } from './Loader';
 import { NewCommentForm } from './NewCommentForm';
 
 import * as commentsActions from '../features/comments';
-import * as commentsApi from '../api/comments';
 
 import { Post } from '../types/Post';
 import { CommentData } from '../types/Comment';
@@ -24,27 +23,23 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
     dispatch(commentsActions.init(post.id));
   }, [dispatch, post.id]);
 
-  const addComment = async ({ name, email, body }: CommentData) => {
+  const addComment = async (data: CommentData) => {
     try {
-      const newComment = await commentsApi.createComment({
-        name,
-        email,
-        body,
-        postId: post.id,
-      });
+      await dispatch(
+        commentsActions.addCommentAsync({
+          ...data,
+          postId: post.id,
+        }),
+      ).unwrap();
 
-      dispatch(commentsActions.addComment(newComment));
       setVisible(false);
-    } catch (error) {
-      // keep form visible so user can retry
-    }
+    } catch {}
   };
 
   const deleteComment = async (commentId: number) => {
     try {
-      dispatch(commentsActions.deleteComment(commentId));
-      await commentsApi.deleteComment(commentId);
-    } catch (error) {
+      await dispatch(commentsActions.deleteCommentAsync(commentId)).unwrap();
+    } catch {
       // we can show some error message here and keep the comment in the list
     }
   };
@@ -62,21 +57,19 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
       </div>
 
       <div className="block">
-        {loaded && <Loader />}
-
-        {!loaded && !!hasError && (
+        {hasError && (
           <div className="notification is-danger" data-cy="CommentsError">
             Something went wrong
           </div>
         )}
 
-        {!loaded && !hasError && items.length === 0 && (
+        {!hasError && items.length === 0 && (
           <p className="title is-4" data-cy="NoCommentsMessage">
             No comments yet
           </p>
         )}
 
-        {!loaded && !hasError && items.length > 0 && (
+        {!hasError && items.length > 0 && (
           <>
             <p className="title is-4">Comments:</p>
 
@@ -110,7 +103,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
           </>
         )}
 
-        {!loaded && !hasError && !visible && (
+        {!hasError && !visible && (
           <button
             data-cy="WriteCommentButton"
             type="button"
@@ -121,9 +114,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
           </button>
         )}
 
-        {!loaded && !hasError && visible && (
-          <NewCommentForm onSubmit={addComment} />
-        )}
+        {!hasError && visible && <NewCommentForm onSubmit={addComment} />}
       </div>
     </div>
   );

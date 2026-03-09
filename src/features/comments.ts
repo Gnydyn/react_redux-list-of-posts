@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Comment } from '../types/Comment';
-import { getPostComments } from '../api/comments';
+import { createComment, deleteComment, getPostComments } from '../api/comments';
 
 type CommentsState = {
   items: Comment[];
@@ -14,20 +14,30 @@ const initialState: CommentsState = {
   hasError: '',
 };
 
-export const init = createAsyncThunk('comments/init', (userId: number) => {
-  return getPostComments(userId);
+export const init = createAsyncThunk('comments/init', (postId: number) => {
+  return getPostComments(postId);
 });
+
+export const addCommentAsync = createAsyncThunk(
+  'comments/addComment',
+  (data: { name: string; email: string; body: string; postId: number }) => {
+    return createComment(data);
+  },
+);
+
+export const deleteCommentAsync = createAsyncThunk(
+  'comments/deleteComment',
+  async (commentId: number) => {
+    await deleteComment(commentId);
+
+    return commentId;
+  },
+);
 
 const commentsSlice = createSlice({
   name: 'comments',
   initialState,
   reducers: {
-    addComment(state, action: PayloadAction<Comment>) {
-      state.items.push(action.payload);
-    },
-    deleteComment(state, action: PayloadAction<number>) {
-      state.items = state.items.filter(item => item.id !== action.payload);
-    },
     clearComments(state) {
       state.items = [];
       state.loaded = false;
@@ -39,17 +49,39 @@ const commentsSlice = createSlice({
       state.loaded = true;
       state.hasError = '';
     });
-    builder.addCase(init.fulfilled, (state, action) => {
-      state.items = action.payload;
-      state.loaded = false;
-    });
+    builder.addCase(
+      init.fulfilled,
+      (state, action: PayloadAction<Comment[]>) => {
+        state.items = action.payload;
+        state.loaded = false;
+      },
+    );
     builder.addCase(init.rejected, state => {
-      state.hasError = 'Failed to load comments';
       state.loaded = false;
+      state.hasError = 'Failed to load comments';
+    });
+    builder.addCase(
+      addCommentAsync.fulfilled,
+      (state, action: PayloadAction<Comment>) => {
+        state.items.push(action.payload);
+        state.hasError = '';
+      },
+    );
+    builder.addCase(addCommentAsync.rejected, state => {
+      state.hasError = 'Failed to add a comment';
+    });
+    builder.addCase(
+      deleteCommentAsync.fulfilled,
+      (state, action: PayloadAction<number>) => {
+        state.items = state.items.filter(item => item.id !== action.payload);
+        state.hasError = '';
+      },
+    );
+    builder.addCase(deleteCommentAsync.rejected, state => {
+      state.hasError = 'Failed to delete comment';
     });
   },
 });
 
 export default commentsSlice.reducer;
-export const { addComment, deleteComment, clearComments } =
-  commentsSlice.actions;
+export const { clearComments } = commentsSlice.actions;

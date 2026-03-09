@@ -12,18 +12,18 @@ import { Loader } from './components/Loader';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import * as postsActions from './features/posts';
 import * as authorActions from './features/author';
+import * as selectedPostActions from './features/selectedPost';
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { items, selectedPost, loaded, hasError } = useAppSelector(
-    state => state.posts,
-  );
+  const { items, loaded, hasError } = useAppSelector(state => state.posts);
+  const { selectedPost } = useAppSelector(state => state.selectedPost);
   const { author } = useAppSelector(state => state.author);
 
   useEffect(() => {
     // we clear the post when an author is changed
     // not to confuse the user
-    dispatch(postsActions.setSelectedPost(null));
+    dispatch(selectedPostActions.setSelectedPost(null));
 
     if (author) {
       dispatch(postsActions.init(author.id));
@@ -70,7 +70,7 @@ export const App: React.FC = () => {
                     posts={items}
                     selectedPostId={selectedPost?.id}
                     onPostSelected={post =>
-                      dispatch(postsActions.setSelectedPost(post))
+                      dispatch(selectedPostActions.setSelectedPost(post))
                     }
                   />
                 )}
